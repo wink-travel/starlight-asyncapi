@@ -1,0 +1,45 @@
+---
+import type { OperationsNavigationGroup } from '../../libs/navigation'
+import type { TranslateFn } from '../../libs/operation'
+import Heading from '../Heading.astro'
+
+import OverviewNavigationLink from './OverviewNavigationLink.astro'
+
+interface Props {
+  groups: OperationsNavigationGroup[]
+}
+
+const { groups } = Astro.props
+const t = Astro.locals.t as unknown as TranslateFn
+
+const visibleGroups = groups.filter((group) => group.links.length > 0)
+---
+
+{
+  visibleGroups.length > 0 && (
+    <div class="sl-asyncapi-overview-navigation">
+      <Heading level={2} id="operations">
+        {t('nav.operations')}
+      </Heading>
+      <div class="sl-asyncapi-overview-navigation-links not-content">
+        {visibleGroups.map((group) =>
+          group.links.map((link) => <OverviewNavigationLink action={link.action} href={link.href} label={link.label} />),
+        )}
+      </div>
+    </div>
+  )
+}
+
+<style>
+  .sl-asyncapi-overview-navigation {
+    margin-top: 3.25rem;
+  }
+
+  .sl-asyncapi-overview-navigation-links {
+    column-gap: 0.75rem;
+    display: grid;
+    font-size: var(--sl-text-xs);
+    grid-template-columns: max-content minmax(0, 1fr) auto;
+    row-gap: 0.625rem;
+  }
+</style>

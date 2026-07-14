@@ -1,0 +1,55 @@
+asyncapi: 3.0.0
+info:
+  title: Tagged Operations Example
+  version: 1.0.0
+  description: Exercises tag-grouped operations with a described tag, producing an operation-tag-overview page.
+servers:
+  websocket:
+    host: example.com
+    protocol: ws
+channels:
+  deviceOnline:
+    address: device/online
+    summary: Device online events.
+    messages:
+      deviceOnline:
+        summary: A device online event.
+        payload:
+          type: object
+          properties:
+            deviceId:
+              type: string
+              description: The unique identifier of the device.
+          required:
+            - deviceId
+  deviceOffline:
+    address: device/offline
+    summary: Device offline events.
+    messages:
+      deviceOffline:
+        summary: A device offline event.
+        payload:
+          type: object
+          properties:
+            deviceId:
+              type: string
+              description: The unique identifier of the device.
+          required:
+            - deviceId
+operations:
+  receiveDeviceOnline:
+    action: receive
+    channel:
+      $ref: '#/channels/deviceOnline'
+    summary: Receive device online events.
+    tags:
+      - name: Devices
+        description: Operations related to device connectivity state.
+  receiveDeviceOffline:
+    action: receive
+    channel:
+      $ref: '#/channels/deviceOffline'
+    summary: Receive device offline events.
+    tags:
+      - name: Devices
+        description: Operations related to device connectivity state.

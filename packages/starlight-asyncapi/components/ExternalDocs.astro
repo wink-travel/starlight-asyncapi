@@ -1,0 +1,18 @@
+---
+import type { TranslateFn } from '../libs/operation'
+
+interface Props {
+  docs: { description: string | undefined; url: string } | undefined
+}
+
+const { docs } = Astro.props
+const t = Astro.locals.t as unknown as TranslateFn
+---
+
+{
+  docs && (
+    <p class="sl-asyncapi-external-docs">
+      <a href={docs.url}>{docs.description ?? t('common.moreInformation')}</a>
+    </p>
+  )
+}

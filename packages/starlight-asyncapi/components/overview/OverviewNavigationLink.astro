@@ -1,0 +1,95 @@
+---
+import { Icon } from '@astrojs/starlight/components'
+
+import type { NormalizedOperation } from '../../libs/normalize'
+import type { TranslateFn } from '../../libs/operation'
+
+interface Props {
+  action: NormalizedOperation['action']
+  href: string
+  label: string
+}
+
+const { action, href, label } = Astro.props
+const t = Astro.locals.t as unknown as TranslateFn
+---
+
+<div class="sl-asyncapi-overview-navigation-link">
+  <div class:list={['sl-asyncapi-overview-navigation-link-badge', action]}>{t(`operation.action.${action}`)}</div>
+  <span class="sl-asyncapi-overview-navigation-link-content">
+    <a {href}>{label}</a>
+  </span>
+  <Icon name="right-arrow" size="1.333em" class="sl-asyncapi-overview-navigation-link-icon rtl:flip" />
+</div>
+
+<style>
+  .sl-asyncapi-overview-navigation-link {
+    align-items: start;
+    border: 1px solid var(--sl-color-gray-5);
+    box-shadow: var(--sl-shadow-sm);
+    column-gap: inherit;
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    padding: 0.875rem;
+    position: relative;
+  }
+
+  .sl-asyncapi-overview-navigation-link-badge {
+    background-color: var(--sl-asyncapi-action-bg);
+    border: 1px solid var(--sl-asyncapi-action-border);
+    color: hsl(0, 0%, 100%);
+    font-size: var(--sl-text-xs);
+    font-weight: 600;
+    justify-self: end;
+    padding-block: 0.2rem;
+    padding-inline: 0.5rem;
+    width: max-content;
+  }
+
+  .sl-asyncapi-overview-navigation-link-badge.send {
+    --sl-asyncapi-action-bg: var(--sl-asyncapi-action-bg-send);
+    --sl-asyncapi-action-border: var(--sl-asyncapi-action-border-send);
+  }
+
+  .sl-asyncapi-overview-navigation-link-badge.receive {
+    --sl-asyncapi-action-bg: var(--sl-asyncapi-action-bg-receive);
+    --sl-asyncapi-action-border: var(--sl-asyncapi-action-border-receive);
+  }
+
+  .sl-asyncapi-overview-navigation-link-content {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+
+  .sl-asyncapi-overview-navigation-link a {
+    color: var(--sl-color-gray-1);
+    font-family: var(--__sl-font-mono);
+    font-size: var(--sl-text-sm);
+    justify-self: start;
+    overflow-wrap: anywhere;
+    text-decoration: none;
+  }
+
+  .sl-asyncapi-overview-navigation-link a::before {
+    content: '';
+    inset: 0;
+    position: absolute;
+  }
+
+  .sl-asyncapi-overview-navigation-link-icon {
+    color: var(--sl-color-gray-3);
+  }
+
+  .sl-asyncapi-overview-navigation-link:is(:hover, :focus-within) {
+    background: var(--sl-color-gray-7, var(--sl-color-gray-6));
+    border-color: var(--sl-color-gray-2);
+  }
+
+  .sl-asyncapi-overview-navigation-link:is(:hover, :focus-within) .sl-asyncapi-overview-navigation-link-icon {
+    color: var(--sl-color-white);
+  }
+</style>

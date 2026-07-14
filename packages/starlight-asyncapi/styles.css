@@ -1,0 +1,37 @@
+@layer starlight.base, starlight.reset, starlight.core, starlight.content, starlight.components, starlight.utils;
+
+/*
+ * Action badge palette (send/receive), the AsyncAPI analog of the reference OpenAPI plugin's
+ * `--sl-openapi-method-*` HTTP method badge vars. Per-protocol tag hues (kafka/mqtt/amqp/ws/...)
+ * are computed in `libs/protocolHue.ts` and applied inline via `Tag.astro`'s `hue` prop rather than
+ * declared as CSS custom properties here, since the protocol set is open-ended (any string a
+ * document author writes), unlike the small fixed HTTP method enum.
+ */
+:root {
+  --sl-asyncapi-action-hue-send: var(--sl-hue-green);
+  --sl-asyncapi-action-hue-receive: 204;
+
+  --sl-asyncapi-action-bg-send: hsl(var(--sl-asyncapi-action-hue-send), 82%, 13%);
+  --sl-asyncapi-action-bg-receive: hsl(var(--sl-asyncapi-action-hue-receive), 100%, 10%);
+
+  --sl-asyncapi-action-border-send: hsl(var(--sl-asyncapi-action-hue-send), 82%, 63%);
+  --sl-asyncapi-action-border-receive: hsl(var(--sl-asyncapi-action-hue-receive), 100%, 60%);
+}
+
+:root[data-theme='light'] {
+  --sl-asyncapi-action-bg-send: hsl(var(--sl-asyncapi-action-hue-send), 90%, 21%);
+  --sl-asyncapi-action-bg-receive: hsl(var(--sl-asyncapi-action-hue-receive), 90%, 40%);
+
+  --sl-asyncapi-action-border-send: hsl(var(--sl-asyncapi-action-hue-send), 90%, 46%);
+  --sl-asyncapi-action-border-receive: hsl(var(--sl-asyncapi-action-hue-receive), 90%, 60%);
+}
+
+.sidebar-content a:not([aria-current='page']) .sl-asyncapi-action-send {
+  --sl-color-bg-badge: var(--sl-asyncapi-action-bg-send);
+  --sl-color-border-badge: var(--sl-asyncapi-action-border-send);
+}
+
+.sidebar-content a:not([aria-current='page']) .sl-asyncapi-action-receive {
+  --sl-color-bg-badge: var(--sl-asyncapi-action-bg-receive);
+  --sl-color-border-badge: var(--sl-asyncapi-action-border-receive);
+}

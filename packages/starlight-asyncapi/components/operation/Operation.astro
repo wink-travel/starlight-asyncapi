@@ -1,0 +1,62 @@
+---
+import { findChannel } from '../../libs/channel'
+import { getMessages } from '../../libs/message'
+import type { NormalizedOperationEntry, TranslateFn } from '../../libs/operation'
+import type { Schema } from '../../libs/schemas/schema'
+import { getServers } from '../../libs/server'
+import Bindings from '../binding/Bindings.astro'
+import Channel from '../channel/Channel.astro'
+import ExternalDocs from '../ExternalDocs.astro'
+import Heading from '../Heading.astro'
+import Md from '../Md.astro'
+import Message from '../message/Message.astro'
+import Reply from '../reply/Reply.astro'
+import Security from '../security/Security.astro'
+import Servers from '../server/Servers.astro'
+
+import OperationAction from './OperationAction.astro'
+
+interface Props {
+  entry: NormalizedOperationEntry
+  schema: Schema
+}
+
+const { entry, schema } = Astro.props
+const { document } = schema
+const { operation } = entry
+const t = Astro.locals.t as unknown as TranslateFn
+
+const channel = findChannel(document, operation.channelId)
+const servers = getServers(document, channel?.serverIds ?? [])
+const messages = getMessages(document, operation.messageIds)
+---
+
+<OperationAction action={operation.action} protocols={entry.protocols} />
+{channel && <Channel {channel} {document} />}
+<Md text={operation.description} />
+<ExternalDocs docs={operation.externalDocs} />
+<Servers id="servers" level={2} {schema} {servers} />
+<Security {schema} security={operation.security} />
+{
+  messages.length > 0 && (
+    <>
+      <Heading level={2} id="messages">
+        {t('operation.messages')}
+      </Heading>
+      {messages.map((message) => (
+        <Message {document} {message} />
+      ))}
+    </>
+  )
+}
+{
+  operation.bindings.length > 0 && (
+    <>
+      <Heading level={2} id="bindings">
+        {t('operation.bindings')}
+      </Heading>
+      <Bindings bindings={operation.bindings} />
+    </>
+  )
+}
+{operation.reply && <Reply reply={operation.reply} {schema} />}

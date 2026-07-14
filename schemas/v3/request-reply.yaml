@@ -1,0 +1,53 @@
+asyncapi: 3.0.0
+info:
+  title: Request/Reply Example
+  version: 1.0.0
+  description: Exercises the AsyncAPI 3 request/reply pattern.
+servers:
+  websocket:
+    host: example.com
+    protocol: ws
+channels:
+  getUserRequest:
+    address: user/get/request
+    summary: Request channel for fetching a user.
+    messages:
+      getUserRequest:
+        summary: A request to fetch a user by ID.
+        payload:
+          type: object
+          properties:
+            userId:
+              type: string
+              description: The unique identifier of the requested user.
+          required:
+            - userId
+  getUserReply:
+    address: user/get/reply
+    summary: Reply channel carrying the fetched user.
+    messages:
+      getUserReply:
+        summary: The reply carrying the fetched user.
+        payload:
+          type: object
+          properties:
+            userId:
+              type: string
+              description: The unique identifier of the user.
+            name:
+              type: string
+              description: The user's display name.
+          required:
+            - userId
+            - name
+operations:
+  getUser:
+    action: send
+    channel:
+      $ref: '#/channels/getUserRequest'
+    summary: Request a user by ID and await the reply.
+    reply:
+      channel:
+        $ref: '#/channels/getUserReply'
+      messages:
+        - $ref: '#/channels/getUserReply/messages/getUserReply'

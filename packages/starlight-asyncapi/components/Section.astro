@@ -1,0 +1,79 @@
+---
+import { slug } from '../libs/path'
+
+import Heading from './Heading.astro'
+
+export interface SectionHeadingProps {
+  level?: number
+  prefix?: string | undefined
+}
+
+interface Props extends SectionHeadingProps {
+  empty?: boolean
+  title: string
+}
+
+const { empty, level = 3, prefix = '', title } = Astro.props
+---
+
+<section class="sl-asyncapi-section" data-asyncapi-section-level={level}>
+  <Heading {level} id={slug(prefix ? `${prefix}-${title}` : title)}>
+    {title}<slot name="post-title" />
+  </Heading>
+  {
+    Astro.slots.has('pre-panel') && (
+      <div class="sl-asyncapi-section-pre-panel">
+        <slot name="pre-panel" />
+      </div>
+    )
+  }
+  {
+    !empty && (
+      <div class="sl-asyncapi-section-panel">
+        <slot />
+      </div>
+    )
+  }
+  {
+    Astro.slots.has('post-panel') && (
+      <div class="sl-asyncapi-section-post-panel">
+        <slot name="post-panel" />
+      </div>
+    )
+  }
+</section>
+
+<style>
+  .sl-asyncapi-section-panel {
+    background-color: var(--sl-color-gray-6);
+    border: 1px solid var(--sl-color-gray-5);
+    overflow-x: auto;
+    padding: 1rem;
+  }
+
+  .sl-asyncapi-section-panel:empty {
+    display: none;
+  }
+
+  :global(main .sl-markdown-content) .sl-asyncapi-section :global(p) {
+    margin-top: 0.5rem;
+  }
+
+  :global(main .sl-markdown-content) .sl-asyncapi-section :global(p:first-child) {
+    margin-top: 0;
+  }
+
+  :global(main .sl-markdown-content) .sl-asyncapi-section :global(ul:not(:first-child)) {
+    margin-top: 0.5rem;
+  }
+
+  :global(main .sl-markdown-content)
+    .sl-asyncapi-section
+    :global(ul:only-child:not(:is([role='tablist'], .sl-asyncapi-security-schemes))) {
+    padding-inline-start: 1.3rem;
+  }
+
+  :global(:not(h1, h2, h3, h4, h5, h6) + .sl-asyncapi-section[data-asyncapi-section-level='2']) {
+    margin-top: calc(var(--sl-text-h2) * 1.5);
+  }
+</style>

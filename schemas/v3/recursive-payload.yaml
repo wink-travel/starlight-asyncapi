@@ -1,0 +1,38 @@
+asyncapi: 3.0.0
+info:
+  title: Recursive Payload Example
+  version: 1.0.0
+  description: Exercises a self-referencing payload schema to validate cycle-safe normalization.
+servers:
+  websocket:
+    host: example.com
+    protocol: ws
+channels:
+  treeUpdated:
+    address: tree/updated
+    summary: Tree structure updates.
+    messages:
+      treeUpdated:
+        summary: A tree structure update event.
+        payload:
+          $ref: '#/components/schemas/TreeNode'
+operations:
+  receiveTreeUpdated:
+    action: receive
+    channel:
+      $ref: '#/channels/treeUpdated'
+    summary: Receive tree structure update events.
+components:
+  schemas:
+    TreeNode:
+      type: object
+      description: A node in a recursive tree structure.
+      properties:
+        id:
+          type: string
+          description: The unique identifier of the node.
+        children:
+          type: array
+          description: The node's child nodes.
+          items:
+            $ref: '#/components/schemas/TreeNode'

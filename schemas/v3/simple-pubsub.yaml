@@ -1,0 +1,59 @@
+asyncapi: 3.0.0
+info:
+  title: Simple Pub/Sub Example
+  version: 1.0.0
+  description: A minimal pub/sub example with one `send` and one `receive` operation.
+servers:
+  websocket:
+    host: example.com
+    protocol: ws
+    description: The public WebSocket server.
+channels:
+  lightMeasured:
+    address: light/measured
+    summary: Light measurement events.
+    messages:
+      lightMeasured:
+        summary: A light measurement event.
+        payload:
+          type: object
+          properties:
+            id:
+              type: integer
+              description: The light unique identifier.
+            lumens:
+              type: integer
+              description: The light intensity measured in lumens.
+          required:
+            - id
+            - lumens
+        examples:
+          - name: dimLight
+            summary: A dim light measurement.
+            payload:
+              id: 1
+              lumens: 12
+  turnOnLight:
+    address: light/turn-on
+    summary: Command to turn on a light.
+    messages:
+      turnOnLight:
+        summary: A command requesting a light to turn on.
+        payload:
+          type: object
+          properties:
+            sentAt:
+              type: string
+              format: date-time
+              description: The date and time the command was sent.
+operations:
+  receiveLightMeasured:
+    action: receive
+    channel:
+      $ref: '#/channels/lightMeasured'
+    summary: Receive light measurement events.
+  sendTurnOnLight:
+    action: send
+    channel:
+      $ref: '#/channels/turnOnLight'
+    summary: Send a command to turn on a light.

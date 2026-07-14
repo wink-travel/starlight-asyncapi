@@ -1,0 +1,23 @@
+---
+import type { NormalizedOperationReplyAddress } from '../../libs/normalize'
+import type { TranslateFn } from '../../libs/operation'
+import Md from '../Md.astro'
+
+interface Props {
+  address: NormalizedOperationReplyAddress | undefined
+}
+
+const { address } = Astro.props
+const t = Astro.locals.t as unknown as TranslateFn
+---
+
+{
+  address && (
+    <>
+      <p class="sl-asyncapi-reply-address">
+        <strong>{t('reply.address')}:</strong> <code>{address.location}</code>
+      </p>
+      <Md text={address.description} />
+    </>
+  )
+}

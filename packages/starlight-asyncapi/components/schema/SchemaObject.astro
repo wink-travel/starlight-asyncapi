@@ -1,0 +1,81 @@
+---
+import {
+  getNullable,
+  getSchemaObjects,
+  isSchemaObject,
+  isSchemaObjectAllOf,
+  isSchemaObjectObject,
+  type SchemaObject,
+} from '../../libs/schemaObject'
+import Examples from '../example/Examples.astro'
+import Items from '../Items.astro'
+import Md from '../Md.astro'
+
+import SchemaObjectAllOf from './SchemaObjectAllOf.astro'
+import SchemaObjectObject from './SchemaObjectObject.astro'
+import SchemaObjectRecursive from './SchemaObjectRecursive.astro'
+import SchemaObjects from './SchemaObjects.astro'
+
+export interface HideSchemaExampleProps {
+  hideExample?: boolean | undefined
+}
+
+interface Props extends HideSchemaExampleProps {
+  negated?: boolean
+  nested?: boolean
+  parents?: SchemaObject[]
+  schemaObject: SchemaObject
+  type?: string | undefined
+}
+
+const { hideExample, negated, nested = false, parents = [], schemaObject, type } = Astro.props
+
+const schemaObjects = getSchemaObjects(schemaObject)
+const nestedParents = [...parents, schemaObject]
+
+const hasMany = schemaObjects !== undefined
+const notSchemaObject = isSchemaObject(schemaObject.not) ? schemaObject.not : undefined
+---
+
+{
+  hasMany ? (
+    <SchemaObjects
+      {hideExample}
+      parents={nestedParents}
+      discriminator={schemaObject.discriminator}
+      {nested}
+      {schemaObjects}
+    />
+  ) : (
+    <>
+      {schemaObject.title && <em>{schemaObject.title}</em>}
+      <Md text={schemaObject.description} />
+      {isSchemaObjectObject(schemaObject) ? (
+        <SchemaObjectObject {hideExample} {parents} {nested} {negated} {schemaObject} />
+      ) : isSchemaObjectAllOf(schemaObject) ? (
+        <SchemaObjectAllOf {hideExample} {nested} {parents} {schemaObject} />
+      ) : (
+        <Items
+          {hideExample}
+          {parents}
+          items={schemaObject}
+          {negated}
+          nullable={getNullable(schemaObject)}
+          {schemaObject}
+          {type}
+        />
+      )}
+      {!hideExample && schemaObject.examples !== undefined && schemaObject.examples.length > 0 && (
+        <Examples example={schemaObject.examples[0]} examples={undefined} {type} />
+      )}
+    </>
+  )
+}
+{
+  notSchemaObject &&
+    (nestedParents.includes(notSchemaObject) ? (
+      <SchemaObjectRecursive negated schemaObject={notSchemaObject} />
+    ) : (
+      <Astro.self {hideExample} {nested} parents={nestedParents} negated schemaObject={notSchemaObject} />
+    ))
+}

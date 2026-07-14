@@ -1,0 +1,70 @@
+---
+import { getPayloadNamedExamples, resolveExamples } from '../../libs/example'
+import type { NormalizedMessage } from '../../libs/message'
+import type { NormalizedAsyncAPIDocument } from '../../libs/normalize'
+import type { TranslateFn } from '../../libs/operation'
+import { resolveSchemaRef } from '../../libs/schemaObject'
+import Bindings from '../binding/Bindings.astro'
+import ExternalDocs from '../ExternalDocs.astro'
+import Md from '../Md.astro'
+import Schema from '../schema/Schema.astro'
+import Section, { type SectionHeadingProps } from '../Section.astro'
+import Text from '../Text.astro'
+
+import CorrelationId from './CorrelationId.astro'
+import MessageHeaders from './MessageHeaders.astro'
+
+interface Props extends SectionHeadingProps {
+  document: NormalizedAsyncAPIDocument
+  message: NormalizedMessage
+}
+
+const { document, level = 3, message, prefix } = Astro.props
+const t = Astro.locals.t as unknown as TranslateFn
+
+const payloadSchema = resolveSchemaRef(document, message.payloadSchemaRef)
+const payloadExamples = resolveExamples(getPayloadNamedExamples(message), payloadSchema)
+---
+
+<Section {level} {prefix} title={message.name ?? message.id}>
+  <Fragment slot="pre-panel">
+    <Text>{message.summary}</Text>
+    <Md text={message.description} />
+    <ExternalDocs docs={message.externalDocs} />
+  </Fragment>
+  {
+    message.contentType && (
+      <p class="sl-asyncapi-message-section-heading">
+        <strong>{t('message.contentType')}:</strong> <code>{message.contentType}</code>
+      </p>
+    )
+  }
+  <CorrelationId correlationId={message.correlationId} />
+  {
+    payloadSchema !== undefined && (
+      <>
+        <p class="sl-asyncapi-message-section-heading">
+          <strong>{t('message.payload')}</strong>
+        </p>
+        <Schema
+          example={payloadExamples.example}
+          examples={payloadExamples.examples}
+          generated={payloadExamples.generated}
+          schema={payloadSchema}
+          type={message.contentType}
+        />
+      </>
+    )
+  }
+  <MessageHeaders {document} {message} />
+  {
+    /* A per-message prefix avoids an id collision with a same-named binding heading elsewhere on the page (see `Servers.astro`). */
+  }
+  {message.bindings.length > 0 && <Bindings bindings={message.bindings} prefix={`message-${message.name ?? message.id}`} />}
+</Section>
+
+<style>
+  .sl-asyncapi-message-section-heading {
+    margin-block: 0.8rem;
+  }
+</style>

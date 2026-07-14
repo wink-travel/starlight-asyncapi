@@ -1,0 +1,29 @@
+---
+import context from 'virtual:starlight-asyncapi/context'
+
+import { getSchemaNavigationGroups } from '../../libs/navigation'
+import type { OperationTag, TranslateFn } from '../../libs/operation'
+import type { Schema } from '../../libs/schemas/schema'
+import Heading from '../Heading.astro'
+import Md from '../Md.astro'
+
+import OverviewNavigationLinks from './OverviewNavigationLinks.astro'
+
+interface Props {
+  schema: Schema
+  tag: OperationTag
+}
+
+const { schema, tag } = Astro.props
+const t = Astro.locals.t as unknown as TranslateFn
+
+const groups = getSchemaNavigationGroups(schema, context, t).filter((group) => group.operationTag.name === tag.name)
+---
+
+<Heading level={2} id="overview">
+  {tag.name}
+</Heading>
+
+<Md text={tag.description} />
+
+<OverviewNavigationLinks {groups} />

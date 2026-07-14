@@ -1,0 +1,16 @@
+packages:
+  - 'docs'
+  - 'packages/**/*'
+
+allowBuilds:
+  # @scarf/scarf phones home anonymous install telemetry via a postinstall script; deny it like
+  # the other build scripts below (deny-by-default for supply-chain safety).
+  '@scarf/scarf': false
+  esbuild: false
+  sharp: false
+  unrs-resolver: false
+
+# SECURITY: refuse to install any package version published within the last 3 days.
+# This is a supply-chain defense: it would have blocked @asyncapi/specs@6.11.2 (a hijacked
+# dropper release published 2026-07-14) and resolved to the prior clean 6.11.1 instead.
+minimumReleaseAge: 4320

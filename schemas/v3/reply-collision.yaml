@@ -1,0 +1,36 @@
+asyncapi: 3.0.0
+info:
+  title: Reply Collision Example
+  version: 1.0.0
+  description: Exercises a reply that reuses the operation's own channel and message, to validate anchor-id collision handling.
+servers:
+  websocket:
+    host: example.com
+    protocol: ws
+channels:
+  echoChannel:
+    address: echo
+    summary: A channel used for both the echo request and its reply.
+    messages:
+      echoMessage:
+        summary: An echo message, reused as both the request and the reply message.
+        payload:
+          type: object
+          properties:
+            value:
+              type: string
+              description: The echoed value.
+    bindings:
+      ws:
+        method: GET
+operations:
+  sendEcho:
+    action: send
+    channel:
+      $ref: '#/channels/echoChannel'
+    summary: Send an echo request and receive the same message back as the reply.
+    reply:
+      channel:
+        $ref: '#/channels/echoChannel'
+      messages:
+        - $ref: '#/channels/echoChannel/messages/echoMessage'

@@ -1,0 +1,56 @@
+---
+import type { TranslateFn } from '../../libs/operation'
+import type { NormalizedOAuthFlow } from '../../libs/security'
+import Tag from '../Tag.astro'
+import Text from '../Text.astro'
+
+interface Props {
+  flow: NormalizedOAuthFlow
+  type: string
+}
+
+const { flow, type } = Astro.props
+const t = Astro.locals.t as unknown as TranslateFn
+---
+
+<Text label={t('security.flowType')}>
+  <Tag>{type}</Tag>
+</Text>
+
+{
+  flow.authorizationUrl && (
+    <Text label={t('security.authorizationUrl')}>
+      <a href={flow.authorizationUrl}>{flow.authorizationUrl}</a>
+    </Text>
+  )
+}
+{
+  flow.tokenUrl && (
+    <Text label={t('security.tokenUrl')}>
+      <a href={flow.tokenUrl}>{flow.tokenUrl}</a>
+    </Text>
+  )
+}
+{
+  flow.refreshUrl && (
+    <Text label={t('security.refreshUrl')}>
+      <a href={flow.refreshUrl}>{flow.refreshUrl}</a>
+    </Text>
+  )
+}
+{
+  Object.keys(flow.scopes).length > 0 && (
+    <>
+      <Text>
+        <b>{t('security.scopes')}</b>
+      </Text>
+      <ul class="sl-asyncapi-security-oauth2-scopes">
+        {Object.entries(flow.scopes).map(([scope, description]) => (
+          <li>
+            <Tag>{scope}</Tag> - {description}
+          </li>
+        ))}
+      </ul>
+    </>
+  )
+}

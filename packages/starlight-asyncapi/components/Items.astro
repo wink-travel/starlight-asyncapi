@@ -1,0 +1,85 @@
+---
+import { getBound, getType, RECURSIVE_TYPE } from '../libs/items'
+import type { TranslateFn } from '../libs/operation'
+import {
+  getRecursiveSchemaObjectItems,
+  getSchemaObjectItems,
+  isSchemaObjectObject,
+  type SchemaObject,
+} from '../libs/schemaObject'
+
+import SchemaObject_, { type HideSchemaExampleProps } from './schema/SchemaObject.astro'
+import SchemaObjectRecursive from './schema/SchemaObjectRecursive.astro'
+import Tag from './Tag.astro'
+import Tags from './Tags.astro'
+import Type from './Type.astro'
+
+interface Props extends HideSchemaExampleProps {
+  items: SchemaObject
+  negated?: boolean | undefined
+  nullable?: boolean | undefined
+  parents?: SchemaObject[]
+  schemaObject?: SchemaObject | undefined
+  type?: string | undefined
+}
+
+const { hideExample, items, negated, nullable, parents = [], schemaObject, type } = Astro.props
+const t = Astro.locals.t as unknown as TranslateFn
+
+const itemSchemaObject = getSchemaObjectItems(items)
+const nestedParents = schemaObject ? [...parents, schemaObject] : parents
+const recursiveSchemaObject = schemaObject && getRecursiveSchemaObjectItems(schemaObject, nestedParents)
+const recursiveItem = schemaObject && recursiveSchemaObject ? { recursiveSchemaObject, schemaObject } : undefined
+
+const arrayItems = Array.isArray(items.items) ? items.items[0] : items.items
+const enumItems = items.enum ?? arrayItems?.enum
+
+// `recursiveItem` (above) already routes the common self-referencing cases to
+// `SchemaObjectRecursive`; this is a defensive fallback for `getType`'s own cycle detection (a
+// sentinel, never a literal string — see `libs/items.ts`) so this branch can never render it raw.
+const itemsType = getType(items)
+const itemsTypeLabel = itemsType === RECURSIVE_TYPE ? t('schema.type.recursive') : itemsType
+---
+
+{
+  items.type && (
+    <div>
+      {recursiveItem ? (
+        <SchemaObjectRecursive
+          {negated}
+          recursiveSchemaObject={recursiveItem.recursiveSchemaObject}
+          schemaObject={recursiveItem.schemaObject}
+        />
+      ) : (
+        <Type>
+          {negated && `${t('schema.not')} `}
+          {itemsTypeLabel}
+        </Type>
+      )}
+      {items.format && <Tag>{t('schema.tag.format', { format: items.format })}</Tag>}
+    </div>
+  )
+}
+<Tags
+  tags={[
+    items.default !== undefined && t('schema.tag.default', { value: items.default }),
+    nullable && t('schema.tag.nullable'),
+    getBound(items, 'minimum'),
+    getBound(items, 'maximum'),
+    items.minLength !== undefined && t('schema.tag.minLength', { count: items.minLength }),
+    items.maxLength !== undefined && t('schema.tag.maxLength', { count: items.maxLength }),
+    items.minItems !== undefined && t('schema.tag.minItems', { count: items.minItems }),
+    items.maxItems !== undefined && t('schema.tag.maxItems', { count: items.maxItems }),
+    items.pattern && `/${items.pattern}/`,
+    items.multipleOf !== undefined && t('schema.tag.multipleOf', { value: items.multipleOf }),
+    items.uniqueItems && t('schema.tag.uniqueItems'),
+  ]}
+/>
+
+{items.const !== undefined && <Tags label={t('schema.allowedValue')} tags={[items.const]} />}
+{enumItems && <Tags label={t('schema.allowedValues')} tags={enumItems} />}
+{
+  itemSchemaObject && isSchemaObjectObject(itemSchemaObject) && !recursiveItem && (
+    <SchemaObject_ parents={nestedParents} nested schemaObject={itemSchemaObject} {hideExample} {type} />
+  )
+}

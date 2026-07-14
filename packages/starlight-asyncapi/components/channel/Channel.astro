@@ -1,0 +1,54 @@
+---
+import type { NormalizedChannel } from '../../libs/channel'
+import type { NormalizedAsyncAPIDocument } from '../../libs/normalize'
+import type { TranslateFn } from '../../libs/operation'
+import Bindings from '../binding/Bindings.astro'
+import Md from '../Md.astro'
+
+import ChannelParameters from './ChannelParameters.astro'
+
+interface Props {
+  channel: NormalizedChannel
+  document: NormalizedAsyncAPIDocument
+  prefix?: string | undefined
+}
+
+const { channel, document, prefix = `channel-${channel.id}` } = Astro.props
+const t = Astro.locals.t as unknown as TranslateFn
+---
+
+<div class="sl-asyncapi-channel-address">
+  <span class="sl-asyncapi-channel-address-label">{t('channel.address')}</span>
+  <code>{channel.address ?? channel.id}</code>
+</div>
+<Md text={channel.description} />
+{
+  /*
+   * The `prefix` prop (defaulting to `channel-${channel.id}`) avoids id collisions both with a
+   * same-named binding heading elsewhere on the page (see `Servers.astro`) AND with a second
+   * `Channel` instance on the same page (e.g. an operation's own channel plus its `Reply`'s
+   * channel) — `Reply.astro` passes an explicit `reply-channel-${channel.id}` prefix so the two
+   * never collide, including when the reply reuses the operation's own channel.
+   */
+}
+<ChannelParameters {document} parameters={channel.parameters} {prefix} />
+{channel.bindings.length > 0 && <Bindings bindings={channel.bindings} {prefix} />}
+
+<style>
+  .sl-asyncapi-channel-address {
+    align-items: baseline;
+    display: flex;
+    font-family: var(--__sl-font-mono);
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .sl-asyncapi-channel-address-label {
+    color: var(--sl-color-gray-2);
+    font-size: var(--sl-text-sm);
+  }
+
+  .sl-asyncapi-channel-address code {
+    font-size: var(--sl-text-base);
+  }
+</style>

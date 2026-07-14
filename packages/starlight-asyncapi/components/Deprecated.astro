@@ -1,0 +1,37 @@
+---
+import type { TranslateFn } from '../libs/operation'
+
+interface Props {
+  deprecated: boolean | undefined
+}
+
+const { deprecated } = Astro.props
+const t = Astro.locals.t as unknown as TranslateFn
+---
+
+{deprecated && <div class="sl-asyncapi-deprecated">{t('common.deprecated')}</div>}
+
+<style>
+  :root {
+    --sl-asyncapi-deprecated-hue: 50;
+  }
+
+  .sl-asyncapi-deprecated {
+    --sl-asyncapi-deprecated-bg: hsl(var(--sl-asyncapi-deprecated-hue), 82%, 13%);
+    --sl-asyncapi-deprecated-border: hsl(var(--sl-asyncapi-deprecated-hue), 82%, 63%);
+
+    background-color: var(--sl-asyncapi-deprecated-bg);
+    border: 1px solid var(--sl-asyncapi-deprecated-border);
+    color: hsl(0, 0%, 100%);
+    display: inline-block;
+    font-size: var(--sl-text-sm);
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    padding: 0.13rem 0.6rem;
+  }
+
+  :global(:root[data-theme='light']) .sl-asyncapi-deprecated {
+    --sl-asyncapi-deprecated-bg: hsl(var(--sl-asyncapi-deprecated-hue), 90%, 28%);
+    --sl-asyncapi-deprecated-border: hsl(var(--sl-asyncapi-deprecated-hue), 90%, 60%);
+  }
+</style>

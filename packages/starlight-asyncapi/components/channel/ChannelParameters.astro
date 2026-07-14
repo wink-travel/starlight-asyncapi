@@ -1,0 +1,40 @@
+---
+import type { NormalizedChannelParameter } from '../../libs/channel'
+import type { NormalizedAsyncAPIDocument } from '../../libs/normalize'
+import type { TranslateFn } from '../../libs/operation'
+import { resolveSchemaRef } from '../../libs/schemaObject'
+import Key from '../Key.astro'
+import Keys from '../Keys.astro'
+import Md from '../Md.astro'
+import Schema from '../schema/Schema.astro'
+import Section, { type SectionHeadingProps } from '../Section.astro'
+
+interface Props extends SectionHeadingProps {
+  document: NormalizedAsyncAPIDocument
+  parameters: Record<string, NormalizedChannelParameter>
+}
+
+const { document, level = 3, parameters, prefix } = Astro.props
+const t = Astro.locals.t as unknown as TranslateFn
+
+const entries = Object.entries(parameters)
+---
+
+{
+  entries.length > 0 && (
+    <Section {level} {prefix} title={t('channel.parameters')}>
+      <Keys>
+        {entries.map(([name, parameter]) => {
+          const schema = resolveSchemaRef(document, parameter.schemaRef)
+
+          return (
+            <Key {name}>
+              <Md text={parameter.description} />
+              {schema !== undefined && <Schema {schema} />}
+            </Key>
+          )
+        })}
+      </Keys>
+    </Section>
+  )
+}

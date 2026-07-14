@@ -1,0 +1,58 @@
+---
+import type { NormalizedAsyncAPIDocument } from '../../libs/normalize'
+import type { TranslateFn } from '../../libs/operation'
+import { capitalize } from '../../libs/utils'
+import Heading from '../Heading.astro'
+import Md from '../Md.astro'
+import Section from '../Section.astro'
+import Text from '../Text.astro'
+
+import SecurityOAuth2Flow from './SecurityOAuth2Flow.astro'
+
+interface Props {
+  document: NormalizedAsyncAPIDocument
+}
+
+const { document } = Astro.props
+const t = Astro.locals.t as unknown as TranslateFn
+
+const schemes = Object.entries(document.components.securitySchemes)
+const apiKeyLikeTypes = new Set(['apiKey', 'httpApiKey'])
+---
+
+{
+  schemes.length > 0 && (
+    <>
+      <Heading level={2} id="authentication">
+        {t('security.authentication')}
+      </Heading>
+      {schemes.map(([name, scheme]) => (
+        <Section title={name}>
+          <Md text={scheme.description} />
+          <Text label={t('security.schemeType')} tag>
+            {scheme.type}
+          </Text>
+          {scheme.bearerFormat && (
+            <Text label={t('security.bearerFormat')} tag>
+              {scheme.bearerFormat}
+            </Text>
+          )}
+          {scheme.openIdConnectUrl && (
+            <Text label={t('security.openIdConnectUrl')}>
+              <a href={scheme.openIdConnectUrl}>{scheme.openIdConnectUrl}</a>
+            </Text>
+          )}
+          {apiKeyLikeTypes.has(scheme.type) && scheme.in && (
+            <Text label={t('security.parameterName', { location: capitalize(scheme.in) })} tag>
+              {scheme.name}
+            </Text>
+          )}
+          {scheme.flows &&
+            Object.entries(scheme.flows).map(
+              ([type, flow]) => flow && <SecurityOAuth2Flow {flow} {type} />,
+            )}
+        </Section>
+      ))}
+    </>
+  )
+}

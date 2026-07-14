@@ -1,0 +1,77 @@
+---
+import type { TranslateFn } from '../libs/operation'
+
+interface Props {
+  additional?: boolean | undefined
+  deprecated?: boolean | undefined
+  name: string
+  required?: boolean | undefined
+}
+
+const { additional, deprecated, name, required } = Astro.props
+const t = Astro.locals.t as unknown as TranslateFn
+---
+
+<div class="sl-asyncapi-key not-content">
+  <div class="sl-asyncapi-key-name">
+    <strong>{additional ? <em>{name}</em> : deprecated ? <s>{name}</s> : name}</strong>
+    {required && <div class="sl-asyncapi-key-required">{t('key.required')}</div>}
+    {deprecated && <div class="sl-asyncapi-key-deprecated">{t('key.deprecated')}</div>}
+    {additional && <div class="sl-asyncapi-key-additional">{t('key.additionalProperties')}</div>}
+  </div>
+  <div class="sl-asyncapi-key-description">
+    <slot />
+  </div>
+</div>
+
+<style>
+  .sl-asyncapi-key {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+  }
+
+  .sl-asyncapi-key + .sl-asyncapi-key {
+    margin-top: var(--sl-content-gap-y);
+  }
+
+  .sl-asyncapi-key-name {
+    grid-column: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .sl-asyncapi-key-required {
+    color: var(--sl-color-red);
+    font-size: var(--sl-text-sm);
+  }
+
+  .sl-asyncapi-key-deprecated {
+    --sl-asyncapi-deprecated-color: hsl(var(--sl-asyncapi-deprecated-hue), 82%, 63%);
+
+    color: var(--sl-asyncapi-deprecated-color);
+    font-size: var(--sl-text-sm);
+  }
+
+  :global(:root[data-theme='light']) .sl-asyncapi-key-deprecated {
+    --sl-asyncapi-deprecated-color: hsl(var(--sl-asyncapi-deprecated-hue), 90%, 25%);
+  }
+
+  .sl-asyncapi-key-additional {
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-sm);
+  }
+
+  .sl-asyncapi-key-description {
+    grid-column: 2;
+    min-width: 0;
+  }
+
+  .sl-asyncapi-key-description :global(details:not(:first-child)) {
+    margin-block-start: 0.5rem;
+  }
+
+  .sl-asyncapi-key-description :global(details:not(:last-child)) {
+    margin-block-end: 0.5rem;
+  }
+</style>

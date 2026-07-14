@@ -1,2 +1,1 @@
-# starlight-asyncapi
-Starlight plugin to generate documentation from AsyncAPI specifications
+packages/starlight-asyncapi/README.md
