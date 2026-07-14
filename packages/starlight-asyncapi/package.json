@@ -1,6 +1,6 @@
 {
   "name": "starlight-asyncapi",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "license": "MIT",
   "description": "Starlight plugin to generate documentation from AsyncAPI specifications.",
   "type": "module",
@@ -47,11 +47,11 @@
     "documentation",
     "astro"
   ],
-  "homepage": "https://github.com/bharvold/starlight-asyncapi",
+  "homepage": "https://github.com/wink-travel/starlight-asyncapi",
   "repository": {
     "type": "git",
-    "url": "https://github.com/bharvold/starlight-asyncapi.git",
+    "url": "https://github.com/wink-travel/starlight-asyncapi.git",
     "directory": "packages/starlight-asyncapi"
   },
-  "bugs": "https://github.com/bharvold/starlight-asyncapi/issues"
+  "bugs": "https://github.com/wink-travel/starlight-asyncapi/issues"
 }
