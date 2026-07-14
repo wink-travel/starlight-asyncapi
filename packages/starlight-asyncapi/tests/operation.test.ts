@@ -36,6 +36,22 @@ test('computes operation slugs from the operation id', async () => {
   expect(receive?.action).toBe('receive')
 })
 
+test('assigns unique route slugs to distinct operation ids that slugify identically', async () => {
+  const schema = await parseTestSchema('v3/slug-collision.yaml')
+  const groups = getOperationsByTag(schema, t)
+  const entries = groups.get('operation.defaultTagGroup')?.entries ?? []
+
+  expect(entries).toHaveLength(2)
+
+  const slugs = entries.map((entry) => entry.slug)
+  // Both `Ping` and `ping` slugify to `ping`; the second must be disambiguated, not collide.
+  expect(new Set(slugs).size).toBe(2)
+  expect(slugs).toContain('operations/ping')
+  expect(slugs).not.toContain(undefined)
+  // The disambiguated slug keeps the `operations/ping` prefix (action-based tiebreaker).
+  expect(slugs.every((entrySlug) => entrySlug.startsWith('operations/ping'))).toBe(true)
+})
+
 test('computes the sidebar label from config.sidebar.operations.labels', async () => {
   const schemaByChannel = await parseTestSchema('v3/simple-pubsub.yaml', {
     sidebar: {

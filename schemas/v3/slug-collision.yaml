@@ -1,0 +1,35 @@
+asyncapi: 3.0.0
+info:
+  title: Slug Collision
+  version: 1.0.0
+# Two distinct, case-sensitive operation ids (`Ping` and `ping`) that slugify to the same value
+# (`ping`). Exercises the route-slug de-duplication in `getOperationsByTag` — without it both would
+# resolve to `operations/ping` and collide in `routesBySlug`, shadowing one page.
+channels:
+  ping:
+    address: ping
+    messages:
+      ping:
+        payload:
+          type: object
+          properties:
+            id:
+              type: string
+  pong:
+    address: pong
+    messages:
+      pong:
+        payload:
+          type: object
+          properties:
+            id:
+              type: string
+operations:
+  Ping:
+    action: send
+    channel:
+      $ref: '#/channels/ping'
+  ping:
+    action: send
+    channel:
+      $ref: '#/channels/pong'

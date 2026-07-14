@@ -33,9 +33,13 @@ export function getOperationsByTag(
   const defaultTag: OperationTag = { name: t('operation.defaultTagGroup'), description: undefined }
 
   const operationIds = document.operations.map((operation) => operation.id)
+  // Reserves a globally-unique route slug per operation as we iterate. `document.operations` is
+  // iterated in the same order here and in every caller (`route.ts` route generation and
+  // `navigation.ts` sidebar building), so the reserved slugs are identical across all of them.
+  const usedSlugs = new Set<string>()
 
   for (const operation of document.operations) {
-    const entry = buildOperationEntry(document, operation, operationIds, config.sidebar.operations.labels)
+    const entry = buildOperationEntry(document, operation, operationIds, usedSlugs, config.sidebar.operations.labels)
     const tags = operation.tags.length > 0 ? operation.tags : [defaultTag]
 
     for (const tag of tags) {
@@ -52,10 +56,10 @@ function buildOperationEntry(
   document: NormalizedAsyncAPIDocument,
   operation: NormalizedOperation,
   operationIds: string[],
+  usedSlugs: Set<string>,
   labels: 'operationId' | 'channel' | 'summary',
 ): NormalizedOperationEntry {
   const isDuplicateId = operationIds.filter((id) => id === operation.id).length > 1
-  const operationIdSlug = slug(operation.id)
   const channel = document.channels.find((candidate) => candidate.id === operation.channelId)
 
   const title =
@@ -66,10 +70,39 @@ function buildOperationEntry(
     action: operation.action,
     protocols: getOperationProtocols(document, operation.channelId),
     channelId: operation.channelId,
-    slug: isDuplicateId ? `operations/${operationIdSlug}/${slug(operation.action)}` : `operations/${operationIdSlug}`,
+    slug: reserveOperationSlug(usedSlugs, slug(operation.id), slug(operation.action)),
     title,
     sidebar: { label: getOperationSidebarLabel(operation, channel?.address, labels, title) },
   }
+}
+
+/**
+ * Reserves a globally-unique `operations/<id>` route slug. Distinct operation ids can slugify to
+ * the same value (e.g. `Ping` and `ping`, both valid, case-sensitive AsyncAPI operation keys), which
+ * would otherwise collide in `route.ts`'s `routesBySlug` map and silently shadow one page — the
+ * stateless `slug()` re-export does not dedupe. Disambiguates with the operation action first (for a
+ * readable URL), then a numeric suffix if that still collides.
+ */
+function reserveOperationSlug(usedSlugs: Set<string>, operationIdSlug: string, actionSlug: string): string {
+  const base = `operations/${operationIdSlug}`
+
+  if (!usedSlugs.has(base)) {
+    usedSlugs.add(base)
+    return base
+  }
+
+  const withAction = `${base}/${actionSlug}`
+  let candidate = withAction
+  let suffix = 2
+
+  while (usedSlugs.has(candidate)) {
+    candidate = `${withAction}-${suffix}`
+    suffix += 1
+  }
+
+  usedSlugs.add(candidate)
+
+  return candidate
 }
 
 function getOperationSidebarLabel(
