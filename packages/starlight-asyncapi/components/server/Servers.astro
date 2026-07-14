@@ -1,0 +1,38 @@
+---
+import type { TranslateFn } from '../../libs/operation'
+import type { Schema } from '../../libs/schemas/schema'
+import type { NormalizedServer } from '../../libs/server'
+import Heading from '../Heading.astro'
+
+import Server from './Server.astro'
+
+interface Props {
+  id?: string | undefined
+  level?: number
+  schema: Schema
+  servers: NormalizedServer[]
+}
+
+const { id, level = 2, schema, servers } = Astro.props
+const t = Astro.locals.t as unknown as TranslateFn
+---
+
+{
+  servers.length > 0 && (
+    <>
+      <Heading {level} id={id ?? 'servers'}>
+        {t('server.heading')}
+      </Heading>
+      {
+        /*
+         * `prefix="server"` disambiguates a server's own heading id (e.g. `server-kafka`) from a
+         * same-named protocol `Bindings` heading elsewhere on the same page (e.g. a bare `kafka`
+         * operation-bindings heading) — both would otherwise slug to the same `id`.
+         */
+      }
+      {servers.map((server) => (
+        <Server level={level + 1} prefix="server" {schema} {server} />
+      ))}
+    </>
+  )
+}

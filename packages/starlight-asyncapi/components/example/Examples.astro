@@ -1,0 +1,66 @@
+---
+import type { NamedExampleValue } from '../../libs/example'
+import type { TranslateFn } from '../../libs/operation'
+import ContentPicker from '../ContentPicker.astro'
+
+import Example from './Example.astro'
+
+export interface Props {
+  example?: unknown
+  examples?: Record<string, NamedExampleValue> | undefined
+  generated?: boolean | undefined
+  type?: string | undefined
+}
+
+const { example, examples, generated, type } = Astro.props
+const t = Astro.locals.t as unknown as TranslateFn
+
+// `examples` is keyed by array index (see `resolveExamples` in `libs/example.ts`), not by display
+// text — the label shown in the picker is the authored `name` when present, otherwise a translated
+// `t('example.numbered', ...)` fallback built from that same 1-based position.
+const exampleEntries = examples ? Object.entries(examples) : undefined
+const pickerTypes = exampleEntries?.map(([key, data], index) => ({
+  value: key,
+  label: data.name ?? t('example.numbered', { n: index + 1 }),
+}))
+---
+
+{
+  example !== undefined || examples ? (
+    exampleEntries ? (
+      <div class="sl-asyncapi-examples">
+        <h5 class="sl-asyncapi-examples-heading">{t('example.headingPlural')}</h5>
+        <ContentPicker label={t('example.select')} singleLabel={t('example.singleLabel')} types={pickerTypes}>
+          {exampleEntries.map(([key, data], index) => (
+            <div data-asyncapi-content-type={key} hidden={index > 0} role="tabpanel">
+              <Example summary={data.summary} {type} value={data.value} />
+            </div>
+          ))}
+        </ContentPicker>
+      </div>
+    ) : (
+      <div class="sl-asyncapi-examples">
+        <h5 class="sl-asyncapi-examples-heading">
+          {t('example.heading')}
+          {generated && <sup class="sl-asyncapi-examples-generated">{t('example.generated')}</sup>}
+        </h5>
+        <Example {type} value={example} />
+      </div>
+    )
+  ) : null
+}
+
+<style>
+  .sl-asyncapi-examples-heading {
+    margin-block: 0.8rem;
+  }
+
+  .sl-asyncapi-examples-generated {
+    color: var(--sl-color-text-accent);
+    font-size: var(--sl-text-xs);
+    font-weight: 400;
+    margin-inline-start: 0.1875rem;
+    position: relative;
+    top: -0.125em;
+  }
+</style>

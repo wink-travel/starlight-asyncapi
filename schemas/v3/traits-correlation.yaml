@@ -1,0 +1,50 @@
+asyncapi: 3.0.0
+info:
+  title: Traits and Correlation Example
+  version: 1.0.0
+  description: Exercises message/operation traits merging and a message correlationId.
+servers:
+  kafka:
+    host: kafka.example.com:9092
+    protocol: kafka
+channels:
+  orderCreated:
+    address: order.created
+    summary: Order creation events.
+    messages:
+      orderCreated:
+        $ref: '#/components/messages/orderCreated'
+operations:
+  receiveOrderCreated:
+    action: receive
+    channel:
+      $ref: '#/channels/orderCreated'
+    traits:
+      - $ref: '#/components/operationTraits/commonOperation'
+components:
+  messages:
+    orderCreated:
+      summary: An order creation event.
+      traits:
+        - $ref: '#/components/messageTraits/commonMessage'
+      payload:
+        type: object
+        properties:
+          orderId:
+            type: string
+            description: The unique identifier of the created order.
+      correlationId:
+        location: $message.header#/correlationId
+        description: The order correlation identifier.
+  messageTraits:
+    commonMessage:
+      contentType: application/json
+      headers:
+        type: object
+        properties:
+          correlationId:
+            type: string
+            description: The correlation ID header injected by the common message trait.
+  operationTraits:
+    commonOperation:
+      description: A trait-provided description shared across operations that receive domain events.

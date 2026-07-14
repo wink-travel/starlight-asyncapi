@@ -1,0 +1,23 @@
+---
+import type { NormalizedCorrelationId } from '../../libs/message'
+import type { TranslateFn } from '../../libs/operation'
+import Md from '../Md.astro'
+
+interface Props {
+  correlationId: NormalizedCorrelationId | undefined
+}
+
+const { correlationId } = Astro.props
+const t = Astro.locals.t as unknown as TranslateFn
+---
+
+{
+  correlationId && (
+    <>
+      <p class="sl-asyncapi-correlation-id">
+        <strong>{t('message.correlationId')}:</strong> <code>{correlationId.location}</code>
+      </p>
+      <Md text={correlationId.description} />
+    </>
+  )
+}

@@ -1,0 +1,81 @@
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components'
+
+import { getType, RECURSIVE_TYPE } from '../../libs/items'
+import type { TranslateFn } from '../../libs/operation'
+import {
+  isSchemaObjectObject,
+  type Discriminator,
+  type SchemaObjects,
+  type SchemaObject as SchemaObjectType,
+} from '../../libs/schemaObject'
+import Tag from '../Tag.astro'
+
+import SchemaObject, { type HideSchemaExampleProps } from './SchemaObject.astro'
+import SchemaObjectRecursive from './SchemaObjectRecursive.astro'
+
+interface Props extends HideSchemaExampleProps {
+  discriminator: Discriminator
+  nested: boolean
+  parents?: SchemaObjectType[]
+  schemaObjects: SchemaObjects
+}
+
+const {
+  discriminator,
+  hideExample,
+  nested,
+  parents = [],
+  schemaObjects: { schemaObjects, type },
+} = Astro.props
+const t = Astro.locals.t as unknown as TranslateFn
+
+const humanReadableType: Record<SchemaObjects['type'], string> = {
+  anyOf: t('schema.combinator.anyOf'),
+  oneOf: t('schema.combinator.oneOf'),
+}
+
+function getSchemaObjectType(schemaObject: SchemaObjectType) {
+  const type = getType(schemaObject)
+
+  if (type === RECURSIVE_TYPE) return t('schema.type.recursive')
+
+  return type ?? (isSchemaObjectObject(schemaObject) ? t('schema.type.object') : t('schema.type.unknown'))
+}
+---
+
+<div class="sl-asyncapi-schema-objects">
+  <span class="sl-asyncapi-schema-objects-type">{humanReadableType[type]}:</span>
+  {discriminator && <Tag>{t('schema.discriminator', { property: discriminator })}</Tag>}
+</div>
+<Tabs>
+  {
+    schemaObjects.map((schemaObject) => {
+      const isRecursive = parents.includes(schemaObject)
+      const schemaObjectType = getSchemaObjectType(schemaObject)
+      const label = schemaObject.title ?? (isRecursive ? t('schema.type.recursiveOf', { type: schemaObjectType }) : schemaObjectType)
+
+      return (
+        <TabItem label={label}>
+          {isRecursive ? (
+            <SchemaObjectRecursive {schemaObject} />
+          ) : (
+            <SchemaObject {hideExample} {parents} {nested} {schemaObject} />
+          )}
+        </TabItem>
+      )
+    })
+  }
+</Tabs>
+
+<style>
+  .sl-asyncapi-schema-objects {
+    margin-bottom: 0.5rem;
+  }
+
+  .sl-asyncapi-schema-objects-type {
+    margin-inline-end: 0.3rem;
+    text-decoration: underline;
+    text-underline-offset: 0.3rem;
+  }
+</style>

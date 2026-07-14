@@ -1,0 +1,43 @@
+---
+import { findChannel } from '../../libs/channel'
+import { getMessages } from '../../libs/message'
+import type { NormalizedOperationReply } from '../../libs/normalize'
+import type { TranslateFn } from '../../libs/operation'
+import type { Schema } from '../../libs/schemas/schema'
+import Channel from '../channel/Channel.astro'
+import Heading from '../Heading.astro'
+import Message from '../message/Message.astro'
+
+import ReplyAddress from './ReplyAddress.astro'
+
+interface Props {
+  reply: NormalizedOperationReply
+  schema: Schema
+}
+
+const { reply, schema } = Astro.props
+const { document } = schema
+const t = Astro.locals.t as unknown as TranslateFn
+
+const channel = findChannel(document, reply.channelId)
+const messages = getMessages(document, reply.messageIds)
+---
+
+<Heading level={2} id="reply">
+  {t('operation.reply')}
+</Heading>
+<ReplyAddress address={reply.address} />
+{
+  /*
+   * Distinct `prefix`es keep every reply-section id unique, even when the reply reuses the
+   * operation's own channel/message (e.g. an echo-style reply): `prefix="reply"` for `Message`
+   * (whose un-prefixed `Section` id would otherwise collide with the operation's own message
+   * section — see `Operation.astro`), and `reply-channel-${channel.id}` for `Channel` (whose
+   * default `channel-${channel.id}` prefix would otherwise collide with the operation's own
+   * `Channel` render when `operation.channelId === reply.channelId`).
+   */
+}
+{channel && <Channel {channel} {document} prefix={`reply-channel-${channel.id}`} />}
+{messages.map((message) => (
+  <Message {document} level={4} {message} prefix="reply" />
+))}

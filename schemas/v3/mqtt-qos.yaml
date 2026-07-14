@@ -1,0 +1,39 @@
+asyncapi: 3.0.0
+info:
+  title: MQTT QoS Example
+  version: 1.0.0
+  description: Exercises an MQTT operation binding with QoS and retain flags.
+servers:
+  mqtt:
+    host: broker.example.com:1883
+    protocol: mqtt
+    description: The public MQTT broker.
+channels:
+  deviceStatus:
+    address: device/{deviceId}/status
+    summary: Device status updates.
+    parameters:
+      deviceId:
+        description: The unique identifier of the device.
+    messages:
+      deviceStatus:
+        summary: A device status update.
+        payload:
+          type: object
+          properties:
+            status:
+              type: string
+              enum:
+                - online
+                - offline
+              description: The current status of the device.
+operations:
+  sendDeviceStatus:
+    action: send
+    channel:
+      $ref: '#/channels/deviceStatus'
+    summary: Publish a device status update.
+    bindings:
+      mqtt:
+        qos: 1
+        retain: true

@@ -1,0 +1,42 @@
+asyncapi: 3.0.0
+info:
+  title: Reply Address Example
+  version: 1.0.0
+  description: Exercises an Operation Reply that specifies an `address` instead of a `channel`.
+servers:
+  websocket:
+    host: example.com
+    protocol: ws
+channels:
+  pingRequest:
+    address: ping/request
+    summary: Request channel for a ping/pong exchange.
+    messages:
+      pingRequest:
+        summary: A ping request, carrying the reply destination in its header.
+        headers:
+          type: object
+          properties:
+            replyTo:
+              type: string
+              description: The runtime address the reply should be sent to.
+        payload:
+          type: object
+          properties:
+            id:
+              type: string
+              description: The unique identifier of the ping request.
+          required:
+            - id
+operations:
+  ping:
+    action: send
+    channel:
+      $ref: '#/channels/pingRequest'
+    summary: Send a ping and await the pong reply at a dynamic address.
+    reply:
+      address:
+        description: The dynamic reply destination carried in the request message's `replyTo` header.
+        location: $message.header#/replyTo
+      messages:
+        - $ref: '#/channels/pingRequest/messages/pingRequest'

@@ -1,0 +1,58 @@
+---
+import { getType, RECURSIVE_TYPE } from '../../libs/items'
+import type { TranslateFn } from '../../libs/operation'
+import {
+  getSchemaObjectItems,
+  isArraySchemaType,
+  isSchemaObjectObject,
+  type SchemaObject,
+} from '../../libs/schemaObject'
+import Tag from '../Tag.astro'
+import Type from '../Type.astro'
+
+interface Props {
+  negated?: boolean | undefined
+  recursiveSchemaObject?: SchemaObject
+  schemaObject: SchemaObject
+}
+
+const { negated = false, recursiveSchemaObject = Astro.props.schemaObject, schemaObject } = Astro.props
+const t = Astro.locals.t as unknown as TranslateFn
+
+function getSchemaObjectType(schemaObject: SchemaObject) {
+  const type = getType(schemaObject)
+
+  if (type === RECURSIVE_TYPE) return t('schema.type.recursive')
+
+  return type ?? (isSchemaObjectObject(schemaObject) ? t('schema.type.object') : t('schema.type.unknown'))
+}
+
+const items = getSchemaObjectItems(schemaObject)
+const types = Array.isArray(schemaObject.type) ? schemaObject.type : schemaObject.type ? [schemaObject.type] : []
+const otherTypes = types.filter((type) => type !== 'array')
+const isRecursiveArray = isArraySchemaType(schemaObject.type) && recursiveSchemaObject === items
+const recursiveArrayItemType = items === schemaObject ? t('schema.type.recursive') : items ? getSchemaObjectType(items) : t('schema.type.unknown')
+---
+
+<div>
+  {
+    isRecursiveArray ? (
+      <>
+        <Type>{t('schema.type.arrayOf', { type: `${negated ? `${t('schema.not')} ` : ''}${recursiveArrayItemType}` })}</Type>
+        <Tag>{t('schema.type.recursive')}</Tag>
+        {otherTypes.length > 0 && <Type>{`| ${otherTypes.join(' | ')}`}</Type>}
+      </>
+    ) : (
+      <>
+        <Type>{`${negated ? `${t('schema.not')} ` : ''}${getSchemaObjectType(schemaObject)}`}</Type>
+        <Tag>{t('schema.type.recursive')}</Tag>
+      </>
+    )
+  }
+</div>
+
+<style>
+  :global(.sl-asyncapi-type + .sl-asyncapi-tag:has(+ .sl-asyncapi-type)) {
+    margin-inline-end: 0.3rem;
+  }
+</style>

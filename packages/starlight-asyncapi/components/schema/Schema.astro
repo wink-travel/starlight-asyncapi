@@ -1,0 +1,29 @@
+---
+import { isSchemaObjectObject, type SchemaObject as SchemaObjectType } from '../../libs/schemaObject'
+import Examples, { type Props as ExamplesProps } from '../example/Examples.astro'
+import Md from '../Md.astro'
+
+import SchemaObject from './SchemaObject.astro'
+
+interface Props extends ExamplesProps {
+  description?: string | undefined
+  schema: SchemaObjectType | boolean | undefined
+  type?: string | undefined
+}
+
+const { description, example, examples, generated, schema, type } = Astro.props
+
+const schemaObject = typeof schema === 'boolean' ? undefined : schema
+
+// For objects, we want to show the description before the object itself.
+const isObject = schemaObject && isSchemaObjectObject(schemaObject)
+---
+
+{isObject && <Md text={description} />}
+{
+  schemaObject && (
+    <SchemaObject schemaObject={schemaObject} hideExample={example !== undefined || examples !== undefined} {type} />
+  )
+}
+{!isObject && <Md text={description} />}
+<Examples {example} {examples} {generated} {type} />

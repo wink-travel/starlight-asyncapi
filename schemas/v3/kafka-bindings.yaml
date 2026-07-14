@@ -1,0 +1,52 @@
+asyncapi: 3.0.0
+info:
+  title: Kafka Bindings Example
+  version: 1.0.0
+  description: Exercises channel, operation, and message level Kafka protocol bindings.
+servers:
+  kafka:
+    host: kafka.example.com:9092
+    protocol: kafka
+    description: The production Kafka cluster.
+channels:
+  userSignedUp:
+    address: user.signedup
+    summary: User sign-up events.
+    messages:
+      userSignedUp:
+        summary: A user sign-up event.
+        payload:
+          type: object
+          properties:
+            userId:
+              type: string
+              description: The unique identifier of the user who signed up.
+        bindings:
+          kafka:
+            key:
+              type: string
+              description: The user ID used as the partition key.
+            schemaIdLocation: header
+    bindings:
+      kafka:
+        partitions: 3
+        replicas: 2
+        topicConfiguration:
+          cleanup.policy:
+            - delete
+operations:
+  receiveUserSignedUp:
+    action: receive
+    channel:
+      $ref: '#/channels/userSignedUp'
+    summary: Consume user sign-up events.
+    bindings:
+      kafka:
+        groupId:
+          type: string
+          enum:
+            - user-signup-consumers
+        clientId:
+          type: string
+          enum:
+            - user-signup-service

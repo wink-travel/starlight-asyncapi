@@ -1,0 +1,74 @@
+---
+import {
+  getNullable,
+  getProperties,
+  getSchemaObjectRequired,
+  getSchemaObjects,
+  isSchemaObject,
+  isSchemaObjectObject,
+  type SchemaObject,
+} from '../../libs/schemaObject'
+import Items from '../Items.astro'
+
+import type { HideSchemaExampleProps } from './SchemaObject.astro'
+import SchemaObjectObjectProperties from './SchemaObjectObjectProperties.astro'
+import SchemaObjectRecursive from './SchemaObjectRecursive.astro'
+import SchemaObjects from './SchemaObjects.astro'
+
+interface Props extends HideSchemaExampleProps {
+  nested: boolean
+  parents?: SchemaObject[]
+  schemaObject: SchemaObject
+}
+
+const { hideExample, nested, schemaObject, parents = [] } = Astro.props
+---
+
+{
+  schemaObject.allOf &&
+    schemaObject.allOf.map((allOfSchemaObject) => {
+      if (!isSchemaObject(allOfSchemaObject)) return null
+
+      const nestedParents = [...parents, schemaObject]
+
+      if (nestedParents.includes(allOfSchemaObject)) {
+        return <SchemaObjectRecursive schemaObject={allOfSchemaObject} />
+      }
+
+      const schemaObjects = getSchemaObjects(allOfSchemaObject)
+
+      if (schemaObjects !== undefined) {
+        return (
+          <SchemaObjects
+            {hideExample}
+            parents={nestedParents}
+            discriminator={schemaObject.discriminator}
+            {nested}
+            {schemaObjects}
+          />
+        )
+      } else if (isSchemaObjectObject(schemaObject)) {
+        return (
+          <>
+            <SchemaObjectObjectProperties
+              {hideExample}
+              parents={nestedParents}
+              properties={getProperties(allOfSchemaObject)}
+              required={getSchemaObjectRequired(schemaObject)}
+            />
+            <Astro.self {hideExample} {nested} parents={nestedParents} schemaObject={allOfSchemaObject} />
+          </>
+        )
+      }
+      return (
+        <Items
+          {hideExample}
+          items={allOfSchemaObject}
+          negated={allOfSchemaObject.not !== undefined}
+          nullable={getNullable(allOfSchemaObject)}
+          parents={nestedParents}
+          schemaObject={allOfSchemaObject}
+        />
+      )
+    })
+}

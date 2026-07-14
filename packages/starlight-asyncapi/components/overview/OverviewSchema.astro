@@ -1,0 +1,108 @@
+---
+import { Card } from '@astrojs/starlight/components'
+import context from 'virtual:starlight-asyncapi/context'
+
+import { getSchemaNavigationGroups } from '../../libs/navigation'
+import type { TranslateFn } from '../../libs/operation'
+import type { Schema } from '../../libs/schemas/schema'
+import ExternalDocs from '../ExternalDocs.astro'
+import Heading from '../Heading.astro'
+import Md from '../Md.astro'
+import SecurityDefinitions from '../security/SecurityDefinitions.astro'
+import Servers from '../server/Servers.astro'
+
+import OverviewNavigationLinks from './OverviewNavigationLinks.astro'
+
+interface Props {
+  schema: Schema
+}
+
+const { schema } = Astro.props
+const { document } = schema
+const t = Astro.locals.t as unknown as TranslateFn
+
+const contacts = [
+  document.info.contact?.url && { href: document.info.contact.url, label: document.info.contact.url },
+  document.info.contact?.email && {
+    href: `mailto:${document.info.contact.email}`,
+    label: document.info.contact.email,
+  },
+].filter((contact): contact is { href: string; label: string } => !!contact)
+---
+
+{
+  /*
+   * Text must match `libs/starlight.ts`'s `getSchemaOverviewHeadings` exactly (`${title}
+   * (${version})`) — that's the accessible name the synthesized ToC heading entry (and this
+   * `id="overview"` anchor) has to resolve to.
+   */
+}
+<Heading level={2} id="overview">
+  {document.info.title} ({document.info.version})
+</Heading>
+
+<Md text={document.info.description} />
+<ExternalDocs docs={document.info.externalDocs} />
+
+<div class="sl-asyncapi-overview-meta">
+  {
+    contacts.length > 0 && (
+      <Card icon="external" title={document.info.contact?.name ?? t('overview.contact')}>
+        <ul>
+          {contacts.map((contact) => (
+            <li>
+              <a href={contact.href}>{contact.label}</a>
+            </li>
+          ))}
+        </ul>
+      </Card>
+    )
+  }
+  {
+    (document.info.termsOfService ?? document.info.license) && (
+      <Card icon="information" title={t('overview.information')}>
+        <ul>
+          {document.info.termsOfService && (
+            <li>
+              <a href={document.info.termsOfService}>{t('overview.termsOfService')}</a>
+            </li>
+          )}
+          {document.info.license && (
+            <li>
+              {t('overview.license')}{' '}
+              {document.info.license.url ? (
+                <a href={document.info.license.url}>{document.info.license.name}</a>
+              ) : (
+                document.info.license.name
+              )}
+            </li>
+          )}
+        </ul>
+      </Card>
+    )
+  }
+</div>
+
+<Servers id="servers" level={2} {schema} servers={document.servers} />
+
+<OverviewNavigationLinks groups={getSchemaNavigationGroups(schema, context, t)} />
+
+<SecurityDefinitions {document} />
+
+<style>
+  .sl-asyncapi-overview-meta:not(:empty) {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    margin-block: 1rem;
+  }
+
+  .sl-asyncapi-overview-meta :global(.card) {
+    padding: clamp(1rem, calc(0.125rem + 3vw), 2rem);
+  }
+
+  .sl-asyncapi-overview-meta :global(.card ul) {
+    margin-block-start: 0.5rem;
+    padding-inline-start: 1.75rem;
+  }
+</style>

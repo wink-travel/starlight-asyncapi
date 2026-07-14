@@ -1,0 +1,81 @@
+---
+import { Icon } from '@astrojs/starlight/components'
+import context from 'virtual:starlight-asyncapi/context'
+
+import type { TranslateFn } from '../../libs/operation'
+import { getSchemaBaseLink, slug } from '../../libs/path'
+import type { Schema } from '../../libs/schemas/schema'
+import { groupSecurityRequirements, type NormalizedSecurityRequirement } from '../../libs/security'
+import Section, { type SectionHeadingProps } from '../Section.astro'
+import Tags from '../Tags.astro'
+
+interface Props extends SectionHeadingProps {
+  schema: Schema
+  security: NormalizedSecurityRequirement[]
+}
+
+const { level = 2, prefix, schema, security } = Astro.props
+const t = Astro.locals.t as unknown as TranslateFn
+
+const groups = groupSecurityRequirements(security)
+---
+
+{
+  groups.length > 0 && (
+    <Section {level} {prefix} title={t('security.authorizations')}>
+      <ul class="sl-asyncapi-security-schemes">
+        {groups.map((group) =>
+          group.map(({ schemeId, scopes }) => (
+            <li class="sl-asyncapi-security-scheme not-content">
+              <Icon name="seti:lock" />
+              <strong>
+                <a href={`${getSchemaBaseLink(schema.config, context)}#${slug(schemeId)}`}>{schemeId}</a>
+              </strong>
+              {scopes.length > 0 && <Tags tags={[...scopes]} />}
+            </li>
+          )),
+        )}
+      </ul>
+    </Section>
+  )
+}
+
+<style>
+  ul.sl-asyncapi-security-schemes {
+    list-style-type: none;
+    padding-inline-start: 0;
+  }
+
+  .sl-asyncapi-security-scheme {
+    align-items: center;
+    column-gap: 0.75rem;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    row-gap: 0.5rem;
+  }
+
+  .sl-asyncapi-security-scheme a {
+    color: var(--sl-color-text-accent);
+  }
+
+  .sl-asyncapi-security-scheme a:hover {
+    color: var(--sl-color-white);
+  }
+
+  .sl-asyncapi-security-scheme > :global(svg) {
+    display: inline;
+    flex-shrink: 0;
+  }
+
+  .sl-asyncapi-security-scheme > :global(.sl-asyncapi-tags) {
+    grid-column: 2;
+    margin-block: 0;
+  }
+
+  @media (min-width: 35rem) {
+    .sl-asyncapi-security-scheme {
+      display: flex;
+      gap: 0.75rem;
+    }
+  }
+</style>

@@ -1,0 +1,73 @@
+---
+import type { TranslateFn } from '../../libs/operation'
+import type { Schema } from '../../libs/schemas/schema'
+import type { NormalizedServer } from '../../libs/server'
+import Bindings from '../binding/Bindings.astro'
+import Key from '../Key.astro'
+import Keys from '../Keys.astro'
+import Md from '../Md.astro'
+import Section, { type SectionHeadingProps } from '../Section.astro'
+import Security from '../security/Security.astro'
+
+interface Props extends SectionHeadingProps {
+  schema: Schema
+  server: NormalizedServer
+}
+
+const { level = 3, prefix, schema, server } = Astro.props
+const t = Astro.locals.t as unknown as TranslateFn
+
+const variableEntries = Object.entries(server.variables)
+---
+
+<Section {level} {prefix} title={server.id}>
+  <ul class="sl-asyncapi-server-meta not-content">
+    <li>
+      <strong>{t('common.protocol')}:</strong> <code>{server.protocol}</code>
+      {server.protocolVersion && <> (<code>{server.protocolVersion}</code>)</>}
+    </li>
+    <li>
+      <strong>{t('server.host')}:</strong> <code>{server.host}</code>
+      {server.pathname && <code>{server.pathname}</code>}
+    </li>
+  </ul>
+  <Md text={server.description} />
+  {
+    variableEntries.length > 0 && (
+      <>
+        <p class="sl-asyncapi-server-section-heading">
+          <strong>{t('server.variables')}</strong>
+        </p>
+        <Keys>
+          {variableEntries.map(([name, variable]) => (
+            <Key {name}>
+              <Md text={variable.description} />
+              {variable.default && (
+                <p>
+                  <strong>{t('schema.tag.default', { value: variable.default })}</strong>
+                </p>
+              )}
+              {variable.enum && variable.enum.length > 0 && <p>{variable.enum.join(', ')}</p>}
+            </Key>
+          ))}
+        </Keys>
+      </>
+    )
+  }
+  {server.bindings.length > 0 && <Bindings bindings={server.bindings} prefix={`server-${server.id}-bindings`} />}
+  <Security prefix={`server-${server.id}`} {schema} security={server.security} />
+</Section>
+
+<style>
+  .sl-asyncapi-server-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    list-style: none;
+    padding: 0;
+  }
+
+  .sl-asyncapi-server-section-heading {
+    margin-block: 0.8rem;
+  }
+</style>

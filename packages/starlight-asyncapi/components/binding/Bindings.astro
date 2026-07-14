@@ -1,0 +1,84 @@
+---
+import type { NormalizedBindingGroup } from '../../libs/binding'
+import type { TranslateFn } from '../../libs/operation'
+import Section, { type SectionHeadingProps } from '../Section.astro'
+
+interface Props extends SectionHeadingProps {
+  bindings: NormalizedBindingGroup[]
+}
+
+const { bindings, level = 3, prefix } = Astro.props
+const t = Astro.locals.t as unknown as TranslateFn
+
+function formatBindingValue(value: unknown): string {
+  // `JSON.stringify(undefined)` returns the JS value `undefined`, not a string — guard explicitly
+  // rather than let that (or any other unstringifiable value, e.g. a function/symbol) fall through.
+  if (value === undefined) return ''
+  if (typeof value === 'string') return value
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value)
+
+  try {
+    return JSON.stringify(value) ?? String(value)
+  } catch {
+    return String(value)
+  }
+}
+---
+
+{
+  bindings.map((binding) => (
+    <Section {level} {prefix} title={binding.protocol}>
+      <table class="sl-asyncapi-bindings-table not-content">
+        <thead>
+          <tr>
+            <th>{t('binding.key')}</th>
+            <th>{t('binding.value')}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {binding.entries.map(([key, value]) => (
+            <tr>
+              <td>
+                <code>{key}</code>
+              </td>
+              <td>
+                <code>{formatBindingValue(value)}</code>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </Section>
+  ))
+}
+
+<style>
+  .sl-asyncapi-bindings-table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  .sl-asyncapi-bindings-table th {
+    border-bottom: 1px solid var(--sl-color-gray-5);
+    color: var(--sl-color-gray-2);
+    font-size: var(--sl-text-sm);
+    padding-block: 0.4rem;
+    text-align: start;
+  }
+
+  .sl-asyncapi-bindings-table td {
+    border-bottom: 1px solid var(--sl-color-gray-6);
+    overflow-wrap: anywhere;
+    padding-block: 0.4rem;
+    vertical-align: top;
+  }
+
+  .sl-asyncapi-bindings-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .sl-asyncapi-bindings-table td:first-child {
+    padding-inline-end: 1rem;
+    white-space: nowrap;
+  }
+</style>

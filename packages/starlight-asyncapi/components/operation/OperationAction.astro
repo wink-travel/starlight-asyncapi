@@ -1,0 +1,52 @@
+---
+import type { NormalizedOperation } from '../../libs/normalize'
+import type { TranslateFn } from '../../libs/operation'
+import { getProtocolHue } from '../../libs/protocolHue'
+import Tag from '../Tag.astro'
+
+interface Props {
+  action: NormalizedOperation['action']
+  protocols: string[]
+}
+
+const { action, protocols } = Astro.props
+const t = Astro.locals.t as unknown as TranslateFn
+---
+
+<div class="sl-asyncapi-operation-action">
+  <div class:list={['sl-asyncapi-operation-action-badge', action]}>{t(`operation.action.${action}`)}</div>
+  {protocols.map((protocol) => (
+    <Tag hue={getProtocolHue(protocol)}>{protocol}</Tag>
+  ))}
+</div>
+
+<style>
+  .sl-asyncapi-operation-action {
+    align-items: center;
+    display: flex;
+    gap: 0.4rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .sl-asyncapi-operation-action-badge {
+    align-items: center;
+    background-color: var(--sl-asyncapi-action-bg);
+    border: 1px solid var(--sl-asyncapi-action-border);
+    color: hsl(0, 0%, 100%);
+    display: flex;
+    font-family: var(--__sl-font-mono);
+    font-weight: 600;
+    padding-block: 0.3rem;
+    padding-inline: 0.6rem;
+  }
+
+  .sl-asyncapi-operation-action-badge.send {
+    --sl-asyncapi-action-bg: var(--sl-asyncapi-action-bg-send);
+    --sl-asyncapi-action-border: var(--sl-asyncapi-action-border-send);
+  }
+
+  .sl-asyncapi-operation-action-badge.receive {
+    --sl-asyncapi-action-bg: var(--sl-asyncapi-action-bg-receive);
+    --sl-asyncapi-action-border: var(--sl-asyncapi-action-border-receive);
+  }
+</style>

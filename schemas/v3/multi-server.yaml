@@ -1,0 +1,54 @@
+asyncapi: 3.0.0
+info:
+  title: Multi-Server Example
+  version: 1.0.0
+  description: Exercises multiple servers on different protocols and per-operation server scoping.
+servers:
+  kafka:
+    host: kafka.example.com:9092
+    protocol: kafka
+    description: The Kafka cluster used for internal fan-out.
+  mqtt:
+    host: broker.example.com:1883
+    protocol: mqtt
+    description: The MQTT broker used for edge devices.
+channels:
+  notificationSentKafka:
+    address: notification.sent
+    summary: Notification events published to Kafka.
+    servers:
+      - $ref: '#/servers/kafka'
+    messages:
+      notificationSent:
+        summary: A notification event.
+        payload:
+          type: object
+          properties:
+            message:
+              type: string
+              description: The notification message body.
+  notificationSentMqtt:
+    address: notification/sent
+    summary: Notification events published to MQTT.
+    servers:
+      - $ref: '#/servers/mqtt'
+    messages:
+      notificationSent:
+        summary: A notification event.
+        payload:
+          type: object
+          properties:
+            message:
+              type: string
+              description: The notification message body.
+operations:
+  sendNotificationKafka:
+    action: send
+    channel:
+      $ref: '#/channels/notificationSentKafka'
+    summary: Publish a notification event to Kafka only.
+  sendNotificationMqtt:
+    action: send
+    channel:
+      $ref: '#/channels/notificationSentMqtt'
+    summary: Publish a notification event to MQTT only.

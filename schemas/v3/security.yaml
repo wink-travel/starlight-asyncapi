@@ -1,0 +1,47 @@
+asyncapi: 3.0.0
+info:
+  title: Security Example
+  version: 1.0.0
+  description: Exercises AsyncAPI security schemes, including broker-auth types, at server and operation level.
+servers:
+  kafka:
+    host: kafka.example.com:9092
+    protocol: kafka
+    security:
+      - $ref: '#/components/securitySchemes/apiKey'
+channels:
+  orderPlaced:
+    address: order.placed
+    summary: Order placement events.
+    messages:
+      orderPlaced:
+        summary: An order placement event.
+        payload:
+          type: object
+          properties:
+            orderId:
+              type: string
+              description: The unique identifier of the placed order.
+operations:
+  sendOrderPlaced:
+    action: send
+    channel:
+      $ref: '#/channels/orderPlaced'
+    summary: Publish an order placement event.
+    security:
+      - $ref: '#/components/securitySchemes/apiKey'
+      - $ref: '#/components/securitySchemes/oauth'
+components:
+  securitySchemes:
+    apiKey:
+      type: httpApiKey
+      name: X-Api-Key
+      in: header
+    oauth:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://example.com/token
+          availableScopes:
+            read: Read access
+            write: Write access

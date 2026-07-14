@@ -1,0 +1,35 @@
+---
+import { getHeadersNamedExamples, resolveExamples } from '../../libs/example'
+import type { NormalizedMessage } from '../../libs/message'
+import type { NormalizedAsyncAPIDocument } from '../../libs/normalize'
+import type { TranslateFn } from '../../libs/operation'
+import { resolveSchemaRef } from '../../libs/schemaObject'
+import Schema from '../schema/Schema.astro'
+
+interface Props {
+  document: NormalizedAsyncAPIDocument
+  message: NormalizedMessage
+}
+
+const { document, message } = Astro.props
+const t = Astro.locals.t as unknown as TranslateFn
+
+const headersSchema = resolveSchemaRef(document, message.headersSchemaRef)
+const headersExamples = resolveExamples(getHeadersNamedExamples(message), headersSchema)
+---
+
+{
+  headersSchema !== undefined && (
+    <>
+      <p class="sl-asyncapi-message-section-heading">
+        <strong>{t('message.headers')}</strong>
+      </p>
+      <Schema
+        example={headersExamples.example}
+        examples={headersExamples.examples}
+        generated={headersExamples.generated}
+        schema={headersSchema}
+      />
+    </>
+  )
+}

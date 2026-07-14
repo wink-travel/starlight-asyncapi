@@ -1,0 +1,44 @@
+---
+/**
+ * The optional `hue` prop lets callers (e.g. `OperationAction.astro`'s protocol tags) opt into the
+ * per-protocol color palette defined in `styles.css` (`--sl-asyncapi-protocol-hue-*`), while every
+ * other caller keeps this primitive's plain neutral-gray look untouched.
+ */
+interface Props {
+  hue?: number | undefined
+}
+
+const { hue } = Astro.props
+---
+
+{' '}
+<span class="sl-asyncapi-tag" style={hue === undefined ? undefined : `--sl-asyncapi-tag-hue: ${hue}`}>
+  <slot />
+</span>
+
+<style>
+  .sl-asyncapi-tag {
+    border: 1px solid var(--sl-asyncapi-tag-border-color, var(--sl-color-gray-4));
+    color: var(--sl-asyncapi-tag-text-color, inherit);
+    display: inline-block;
+    font-size: var(--sl-text-xs);
+    line-height: 1.6;
+    padding-inline: 0.4rem;
+  }
+
+  .sl-asyncapi-tag[style*='--sl-asyncapi-tag-hue'] {
+    --sl-asyncapi-tag-border-color: hsl(var(--sl-asyncapi-tag-hue), 60%, 45%);
+    --sl-asyncapi-tag-text-color: hsl(var(--sl-asyncapi-tag-hue), 70%, 75%);
+  }
+
+  /*
+   * The rule above is tuned for dark theme (a 70-75% text lightness reads fine on a dark
+   * background, but fails WCAG contrast on a light one). Mirrors `Deprecated.astro`/`styles.css`'s
+   * `:root[data-theme='light']` companion-rule pattern for the same per-hue-tag surface (the
+   * protocol badge on every operation page).
+   */
+  :global(:root[data-theme='light']) .sl-asyncapi-tag[style*='--sl-asyncapi-tag-hue'] {
+    --sl-asyncapi-tag-border-color: hsl(var(--sl-asyncapi-tag-hue), 70%, 35%);
+    --sl-asyncapi-tag-text-color: hsl(var(--sl-asyncapi-tag-hue), 85%, 28%);
+  }
+</style>
